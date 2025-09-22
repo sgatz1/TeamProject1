@@ -41,11 +41,46 @@ public class AdminSetupPage {
             String p = txtPass.getText().trim();
             String em = txtEmail.getText().trim();
 
+            //Username validation 
+            boolean uservalid = false;
+
+            String usernamevalid = UserNameRecognizer.checkForValidUserName(u);
+            System.out.println(usernamevalid);
+
+            if (usernamevalid.contains("*** ERROR ***")) {
+                System.out.println("Username is Invalid");
+            } else {
+                System.out.println("Username is Valid");
+                uservalid = true;
+            }
+
+            
+            //Password validation 
+            boolean passvalid = false;
+            String passwordvalid = PasswordEvaluator.evaluatePassword(p);
+            System.out.println(passwordvalid);
+
+            if (passwordvalid.contains("conditions were not satisfied") ||
+                    passwordvalid.contains("*** Error *** An invalid character has been found!")) {
+                System.out.println("Password is Invalid");
+            } else {
+                System.out.println("Password is Valid");
+                passvalid = true;
+            }
+
+        
             // make sure all fields are filled
             if (u.isEmpty() || p.isEmpty() || em.isEmpty()) {
                 lblStatus.setText("All fields required.");
                 return;
             }
+            
+            // username and password most both be valid
+            if ( uservalid || !passvalid) {
+                lblStatus.setText("Username or Password is invalid.");
+                return;
+            }
+            
 
             // try to add the new admin user
             boolean ok = db.register(u, p, em);
