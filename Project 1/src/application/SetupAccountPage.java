@@ -1,32 +1,19 @@
 package application;
 
+import databasePart1.DatabaseHelper;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.sql.SQLException;
-
-import databasePart1.*;
-
-/**
- * SetupAccountPage class handles the account setup process for new users.
- * Users provide their userName, password, and a valid invitation code to register.
- */
 public class SetupAccountPage {
-	
     private final DatabaseHelper databaseHelper;
-    // DatabaseHelper to handle database operations.
-    public SetupAccountPage(DatabaseHelper databaseHelper) {
-        this.databaseHelper = databaseHelper;
+
+    public SetupAccountPage(DatabaseHelper db) {
+        this.databaseHelper = db;
     }
 
-    /**
-     * Displays the Setup Account page in the provided stage.
-     * @param primaryStage The primary stage where the scene will be displayed.
-     */
     public void show(Stage primaryStage) {
-    	// Input fields for userName, password, and invitation code
         TextField userNameField = new TextField();
         userNameField.setPromptText("Enter userName");
         userNameField.setMaxWidth(250);
@@ -34,55 +21,78 @@ public class SetupAccountPage {
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("Enter Password");
         passwordField.setMaxWidth(250);
-        
+
+        TextField emailField = new TextField();
+        emailField.setPromptText("Enter Email");
+        emailField.setMaxWidth(250);
+
         TextField inviteCodeField = new TextField();
         inviteCodeField.setPromptText("Enter InvitationCode");
         inviteCodeField.setMaxWidth(250);
-        
-        // Label to display error messages for invalid input or registration issues
+
         Label errorLabel = new Label();
         errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 12px;");
-        
-
         Button setupButton = new Button("Setup");
-        
+
         setupButton.setOnAction(a -> {
-        	// Retrieve user input
-            String userName = userNameField.getText();
-            String password = passwordField.getText();
-            String code = inviteCodeField.getText();
-            
-            try {
-            	// Check if the user already exists
-            	if(!databaseHelper.doesUserExist(userName)) {
-            		
-            		// Validate the invitation code
-            		if(databaseHelper.validateInvitationCode(code)) {
-            			
-            			// Create a new user and register them in the database
-		            	User user=new User(userName, password, "user");
-		                databaseHelper.register(user);
-		                
-		             // Navigate to the Welcome Login Page
-		                new WelcomeLoginPage(databaseHelper).show(primaryStage,user);
-            		}
-            		else {
-            			errorLabel.setText("Please enter a valid invitation code");
-            		}
-            	}
-            	else {
-            		errorLabel.setText("This useruserName is taken!!.. Please use another to setup an account");
-            	}
-            	
-            } catch (SQLException e) {
-                System.err.println("Database error: " + e.getMessage());
-                e.printStackTrace();
+            String userName = userNameField.getText().trim();
+            String password = passwordField.getText().trim();
+            String email = emailField.getText().trim();
+            String code = inviteCodeField.getText().trim();
+
+            if (userName.isEmpty() || password.isEmpty() || email.isEmpty() || code.isEmpty()) {
+                errorLabel.setText("All fields required.");
+                return;
+            }
+
+            // === Username and Password validation snippet created by mustafa <- implemented the use case here
+            boolean uservalid = false;
+            boolean passvalid = false;
+
+            String usernamevalid = UserNameRecognizer.checkForValidUserName(userName);
+            System.out.println(usernamevalid);
+
+            if (usernamevalid.contains("*** ERROR ***")) {
+                System.out.println("Username is Invalid");
+            } else {
+                System.out.println("Username is Valid");
+                uservalid = true;
+            }
+
+            String passwordvalid = PasswordEvaluator.evaluatePassword(password);
+            System.out.println(passwordvalid);
+
+            if (passwordvalid.contains("conditions were not satisfied") ||
+                    passwordvalid.contains("*** Error *** An invalid character has been found!")) {
+                System.out.println("Password is Invalid");
+            } else {
+                System.out.println("Password is Valid");
+                passvalid = true;
+            }
+
+            // Stop here if input validation fails
+            if (!uservalid || !passvalid) {
+                errorLabel.setText("Invalid username or password. See console for details.");
+                return;
+            }
+            // === End of snippet ===
+
+            if (!databaseHelper.validateInvitationCode(code)) {
+                errorLabel.setText("Please enter a valid invitation code.");
+                return;
+            }
+
+            boolean success = databaseHelper.register(userName, password, email);
+            if (success) {
+                new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
+            } else {
+                errorLabel.setText("Failed to register user.");
             }
         });
 
         VBox layout = new VBox(10);
         layout.setStyle("-fx-padding: 20; -fx-alignment: center;");
-        layout.getChildren().addAll(userNameField, passwordField,inviteCodeField, setupButton, errorLabel);
+        layout.getChildren().addAll(userNameField, passwordField, emailField, inviteCodeField, setupButton, errorLabel);
 
         primaryStage.setScene(new Scene(layout, 800, 400));
         primaryStage.setTitle("Account Setup");

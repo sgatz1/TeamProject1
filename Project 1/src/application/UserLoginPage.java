@@ -1,81 +1,71 @@
 package application;
 
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import databasePart1.DatabaseHelper;
+import java.util.List;
 
-import java.sql.SQLException;
-
-import databasePart1.*;
-
-/**
- * The UserLoginPage class provides a login interface for users to access their accounts.
- * It validates the user's credentials and navigates to the appropriate page upon successful login.
- */
 public class UserLoginPage {
-	
-    private final DatabaseHelper databaseHelper;
+    private DatabaseHelper db;
 
-    public UserLoginPage(DatabaseHelper databaseHelper) {
-        this.databaseHelper = databaseHelper;
+    public UserLoginPage(DatabaseHelper db) {
+        this.db = db;
     }
 
-    public void show(Stage primaryStage) {
-    	// Input field for the user's userName, password
-        TextField userNameField = new TextField();
-        userNameField.setPromptText("Enter userName");
-        userNameField.setMaxWidth(250);
+    public void show(Stage stage) {
+        VBox root = new VBox(10);
+        root.setAlignment(Pos.CENTER);
+
+        TextField usernameField = new TextField();
+        usernameField.setPromptText("Username");
 
         PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Enter Password");
-        passwordField.setMaxWidth(250);
-        
-        // Label to display error messages
-        Label errorLabel = new Label();
-        errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 12px;");
+        passwordField.setPromptText("Password");
 
+        Label message = new Label();
 
-        Button loginButton = new Button("Login");
-        
-        loginButton.setOnAction(a -> {
-        	// Retrieve user inputs
-            String userName = userNameField.getText();
-            String password = passwordField.getText();
-            try {
-            	User user=new User(userName, password, "");
-            	WelcomeLoginPage welcomeLoginPage = new WelcomeLoginPage(databaseHelper);
-            	
-            	// Retrieve the user's role from the database using userName
-            	String role = databaseHelper.getUserRole(userName);
-            	
-            	if(role!=null) {
-            		user.setRole(role);
-            		if(databaseHelper.login(user)) {
-            			welcomeLoginPage.show(primaryStage,user);
-            		}
-            		else {
-            			// Display an error if the login fails
-                        errorLabel.setText("Error logging in");
-            		}
-            	}
-            	else {
-            		// Display an error if the account does not exist
-                    errorLabel.setText("user account doesn't exists");
-            	}
-            	
-            } catch (SQLException e) {
-                System.err.println("Database error: " + e.getMessage());
-                e.printStackTrace();
-            } 
+        Button loginBtn = new Button("Login");
+        loginBtn.setOnAction(e -> {
+            String uname = usernameField.getText();
+            String pw = passwordField.getText();
+
+            if (db.login(uname, pw)) {
+                try {
+                    List<String> roles = db.getUserRoles(uname);
+
+                    if (roles.size() == 1) {
+                        String role = roles.get(0);
+                        if (role.equalsIgnoreCase("admin")) {
+                            new AdminHomePage(db).show(stage);
+                        } else {
+                            new MockRolePage(stage, db, uname, role).show(stage);
+                        }
+                    } else {
+                        new RoleSelectionPage(db, uname).show(stage);
+                    }
+                } catch (Exception ex) {
+                    message.setText("Error loading roles: " + ex.getMessage());
+                }
+            } else {
+                message.setText("Invalid username or password.");
+            }
         });
 
-        VBox layout = new VBox(10);
-        layout.setStyle("-fx-padding: 20; -fx-alignment: center;");
-        layout.getChildren().addAll(userNameField, passwordField, loginButton, errorLabel);
+        // new forgot password button
+        Button forgotBtn = new Button("Forgot Password?");
+        forgotBtn.setOnAction(e -> {
+            ForgotPasswordPage fp = new ForgotPasswordPage(db);
+            fp.show(stage);
+        });
 
-        primaryStage.setScene(new Scene(layout, 800, 400));
-        primaryStage.setTitle("User Login");
-        primaryStage.show();
+        // added forgotBtn into layout before message
+        root.getChildren().addAll(usernameField, passwordField, loginBtn, forgotBtn, message);
+
+        stage.setScene(new Scene(root, 400, 300));
+        stage.setTitle("Login");
+        stage.show();
     }
 }

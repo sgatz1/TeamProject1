@@ -1,54 +1,47 @@
 package application;
 
-
-import databasePart1.*;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import databasePart1.DatabaseHelper;
 
-/**
- * InvitePage class represents the page where an admin can generate an invitation code.
- * The invitation code is displayed upon clicking a button.
- */
-
+// this page shows the code that was generated for invites
 public class InvitationPage {
 
-	/**
-     * Displays the Invite Page in the provided primary stage.
-     * 
-     * @param databaseHelper An instance of DatabaseHelper to handle database operations.
-     * @param primaryStage   The primary stage where the scene will be displayed.
-     */
-    public void show(DatabaseHelper databaseHelper,Stage primaryStage) {
-    	VBox layout = new VBox();
-	    layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
-	    
-	    // Label to display the title of the page
-	    Label userLabel = new Label("Invite ");
-	    userLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-	    
-	    // Button to generate the invitation code
-	    Button showCodeButton = new Button("Generate Invitation Code");
-	    
-	    // Label to display the generated invitation code
-	    Label inviteCodeLabel = new Label(""); ;
-        inviteCodeLabel.setStyle("-fx-font-size: 14px; -fx-font-style: italic;");
-        
-        showCodeButton.setOnAction(a -> {
-        	// Generate the invitation code using the databaseHelper and set it to the label
-            String invitationCode = databaseHelper.generateInvitationCode();
-            inviteCodeLabel.setText(invitationCode);
+    private DatabaseHelper db; // db object
+
+    public InvitationPage(DatabaseHelper d) {
+        db = d;
+    }
+
+    public void show(Stage stage) {
+        // layout for the screen
+        VBox layout = new VBox(10);
+        layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
+
+        // text for the page
+        Label lblInfo = new Label("Invitation Code Generated:");
+
+        // ask db to make a code
+        String code = db.generateInvitationCode();
+        Label lblCode = new Label(code != null ? code : "Error generating code");
+
+        // back button to go to login screen
+        Button btnBack = new Button("Back");
+        btnBack.setOnAction(e -> {
+            WelcomeLoginPage w = new WelcomeLoginPage(db);
+            w.show(stage, "admin");
         });
-	    
 
-        layout.getChildren().addAll(userLabel, showCodeButton, inviteCodeLabel);
-	    Scene inviteScene = new Scene(layout, 800, 400);
+        // add everything to layout
+        layout.getChildren().addAll(lblInfo, lblCode, btnBack);
 
-	    // Set the scene to primary stage
-	    primaryStage.setScene(inviteScene);
-	    primaryStage.setTitle("Invite Page");
-    	
+        // create scene and show it
+        Scene scene = new Scene(layout, 800, 400);
+        stage.setScene(scene);
+        stage.setTitle("Invitation Page");
+        stage.show();
     }
 }

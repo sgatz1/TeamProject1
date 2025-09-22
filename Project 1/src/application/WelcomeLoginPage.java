@@ -1,66 +1,53 @@
 package application;
 
+import databasePart1.DatabaseHelper;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.application.Platform;
-import databasePart1.*;
 
 /**
- * The WelcomeLoginPage class displays a welcome screen for authenticated users.
- * It allows users to navigate to their respective pages based on their role or quit the application.
+ * Simple welcome page after login for users with one role (or default).
+ * Lets user go to Role Selection or Logout.
  */
 public class WelcomeLoginPage {
-	
-	private final DatabaseHelper databaseHelper;
 
-    public WelcomeLoginPage(DatabaseHelper databaseHelper) {
-        this.databaseHelper = databaseHelper;
+    private DatabaseHelper db; // database helper
+
+    public WelcomeLoginPage(DatabaseHelper d) {
+        db = d;
     }
-    public void show( Stage primaryStage, User user) {
-    	
-    	VBox layout = new VBox(5);
-	    layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
-	    
-	    Label welcomeLabel = new Label("Welcome!!");
-	    welcomeLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-	    
-	    // Button to navigate to the user's respective page based on their role
-	    Button continueButton = new Button("Continue to your Page");
-	    continueButton.setOnAction(a -> {
-	    	String role =user.getRole();
-	    	System.out.println(role);
-	    	
-	    	if(role.equals("admin")) {
-	    		new AdminHomePage().show(primaryStage);
-	    	}
-	    	else if(role.equals("user")) {
-	    		new UserHomePage().show(primaryStage);
-	    	}
-	    });
-	    
-	    // Button to quit the application
-	    Button quitButton = new Button("Quit");
-	    quitButton.setOnAction(a -> {
-	    	databaseHelper.closeConnection();
-	    	Platform.exit(); // Exit the JavaFX application
-	    });
-	    
-	    // "Invite" button for admin to generate invitation codes
-	    if ("admin".equals(user.getRole())) {
-            Button inviteButton = new Button("Invite");
-            inviteButton.setOnAction(a -> {
-                new InvitationPage().show(databaseHelper, primaryStage);
-            });
-            layout.getChildren().add(inviteButton);
-        }
 
-	    layout.getChildren().addAll(welcomeLabel,continueButton,quitButton);
-	    Scene welcomeScene = new Scene(layout, 800, 400);
+    public void show(Stage stage, String user) {
+        // welcome message
+        Label lblWelcome = new Label("Welcome, " + user + "!");
 
-	    // Set the scene to primary stage
-	    primaryStage.setScene(welcomeScene);
-	    primaryStage.setTitle("Welcome Page");
+        // buttons
+        Button btnRole = new Button("Choose Role");
+        Button btnLogout = new Button("Logout");
+
+        // go to role selection page
+        btnRole.setOnAction(e -> {
+            RoleSelectionPage rolePage = new RoleSelectionPage(db, user);
+            rolePage.show(stage);
+        });
+
+        // logout goes back to login/setup
+        btnLogout.setOnAction(e -> {
+            SetupLoginSelectionPage sel = new SetupLoginSelectionPage(db);
+            sel.show(stage);
+        });
+
+        // layout
+        VBox layout = new VBox(10, lblWelcome, btnRole, btnLogout);
+        layout.setPadding(new Insets(20));
+        layout.setStyle("-fx-alignment: center;");
+
+        // make scene
+        stage.setScene(new Scene(layout, 800, 400));
+        stage.setTitle("Welcome");
+        stage.show();
     }
 }

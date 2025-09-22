@@ -1,36 +1,29 @@
 package application;
 
+import databasePart1.DatabaseHelper;
 import javafx.application.Application;
 import javafx.stage.Stage;
-import java.sql.SQLException;
 
-import databasePart1.DatabaseHelper;
-
-
+// main class that starts the program
 public class StartCSE360 extends Application {
 
-	private static final DatabaseHelper databaseHelper = new DatabaseHelper();
-	
-	public static void main( String[] args )
-	{
-		 launch(args);
-	}
-	
-	@Override
+    private static final DatabaseHelper db = new DatabaseHelper(); // database helper
+
+    public static void main(String[] args) {
+        // launch the javafx app
+        launch(args);
+    }
+
+    @Override
     public void start(Stage primaryStage) {
-        try {
-            databaseHelper.connectToDatabase(); // Connect to the database
-            if (databaseHelper.isDatabaseEmpty()) {
-            	
-            	new FirstPage(databaseHelper).show(primaryStage);
-            } else {
-            	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
-                
-            }
-        } catch (SQLException e) {
-        	System.out.println(e.getMessage());
+        // if no users are in the database yet, show first page
+        if (db.isDatabaseEmpty()) {
+            FirstPage page = new FirstPage(db);
+            page.show(primaryStage);
+        } else {
+            // otherwise go to the setup/login selection screen
+            SetupLoginSelectionPage page = new SetupLoginSelectionPage(db);
+            page.show(primaryStage);
         }
     }
-	
-
 }

@@ -1,27 +1,37 @@
 package application;
 
 /**
- * The User class represents a user entity in the system.
- * It contains the user's details such as userName, password, and role.
+ * This is a simple class to hold user data.
  */
 public class User {
+
+    // basic info for a user
     private String userName;
     private String password;
-    private String role;
+    private String email;
 
-    // Constructor to initialize a new User object with userName, password, and role.
-    public User( String userName, String password, String role) {
-        this.userName = userName;
-        this.password = password;
-        this.role = role;
-    }
-    
-    // Sets the role of the user.
-    public void setRole(String role) {
-    	this.role=role;
+    // make a user object
+    public User(String u, String p, String e) {
+        userName = u;
+        password = p;
+        email = e;
     }
 
-    public String getUserName() { return userName; }
-    public String getPassword() { return password; }
-    public String getRole() { return role; }
+    // get methods (read info)
+    public String getUserName() {
+        return userName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    // set methods (change info)
+    public void setEmail(String e) {
+        email = e;
+    }
 }
