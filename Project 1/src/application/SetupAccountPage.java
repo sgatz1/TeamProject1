@@ -45,7 +45,7 @@ public class SetupAccountPage {
                 return;
             }
 
-            // === Username and Password validation snippet created by mustafa <- implemented the use case here
+            // === Username and Password validation - Mustafa
             boolean uservalid = false;
             boolean passvalid = false;
 
