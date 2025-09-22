@@ -120,7 +120,8 @@ public class DatabaseHelper {
         }
     }
 
-    // ✅ FIXED: safer version of getAllUsers (works in H2, no STRINGAGG)
+    ///  fixed this users table to ensure it successfully displays all users on db table for admin
+
     public List<String[]> getAllUsers() {
         List<String[]> users = new ArrayList<>();
         try {
@@ -249,3 +250,4 @@ public class DatabaseHelper {
         }
     }
 }
+//end 
