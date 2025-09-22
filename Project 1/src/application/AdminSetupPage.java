@@ -76,7 +76,7 @@ public class AdminSetupPage {
             }
             
             // username and password most both be valid
-            if ( uservalid || !passvalid) {
+            if (!uservalid || !passvalid) {
                 lblStatus.setText("Username or Password is invalid.");
                 return;
             }
